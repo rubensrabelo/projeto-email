@@ -27,3 +27,7 @@ func (s *Service) Create(newCampaign contract.NewCampaign) (string, error) {
 
 	return campaign.ID, nil
 }
+
+func (s *Service) Get() (interface{}, error) {
+    return s.Repository.Get()
+}
