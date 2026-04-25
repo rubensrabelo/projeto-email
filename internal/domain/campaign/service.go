@@ -31,3 +31,22 @@ func (s *Service) Create(newCampaign contract.NewCampaign) (string, error) {
 func (s *Service) Get() (interface{}, error) {
     return s.Repository.Get()
 }
+
+func (s *Service) GetBy(id string) (*contract.CampaignResponse, error) {
+    campaign, err := s.Repository.GetBy(id)
+    if err != nil {
+        return nil, internalerrors.ErrInternal
+    }
+
+    // Adicione esta verificação de segurança
+    if campaign == nil {
+        return nil, nil // ou um erro de "not found"
+    }
+
+    return &contract.CampaignResponse{
+        ID:      campaign.ID,
+        Name:    campaign.Name,
+        Content: campaign.Content,
+        Status:  campaign.Status,
+    }, nil
+}

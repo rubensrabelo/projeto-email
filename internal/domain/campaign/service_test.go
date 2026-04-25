@@ -20,8 +20,19 @@ func (r *repositoryMock) Save(campaign *Campaign) error {
 }
 
 func (r *repositoryMock) Get() ([]Campaign, error) {
-	//args := r.Called(campaign)
-	return nil, nil
+	args := r.Called()
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]Campaign), args.Error(1)
+}
+
+func (r *repositoryMock) GetBy(id string) (*Campaign, error) {
+	args := r.Called(id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*Campaign), args.Error(1)
 }
 
 var (
@@ -35,9 +46,9 @@ var (
 
 func Test_Create_Campaign(t *testing.T) {
 	assert := assert.New(t)
-	repositoryMock := new(repositoryMock)
-	repositoryMock.On("Save", mock.Anything).Return(nil)
-	service.Repository = repositoryMock
+	repoMock := new(repositoryMock)
+	repoMock.On("Save", mock.Anything).Return(nil)
+	service.Repository = repoMock
 
 	id, err := service.Create(newCampaign)
 
@@ -50,34 +61,59 @@ func Test_Create_ValidateDomainError(t *testing.T) {
 
 	_, err := service.Create(contract.NewCampaign{})
 
+	assert.NotNil(err)
 	assert.False(errors.Is(internalerrors.ErrInternal, err))
 }
 
 func Test_Create_SaveCampaign(t *testing.T) {
-	repositoryMock := new(repositoryMock)
-	repositoryMock.On("Save", mock.MatchedBy(func(campaign *Campaign) bool {
+	repoMock := new(repositoryMock)
+	repoMock.On("Save", mock.MatchedBy(func(campaign *Campaign) bool {
 		if campaign.Name != newCampaign.Name ||
 			campaign.Content != newCampaign.Content ||
 			len(campaign.Contacts) != len(newCampaign.Emails) {
 			return false
 		}
-
 		return true
 	})).Return(nil)
-	service.Repository = repositoryMock
+	service.Repository = repoMock
 
 	service.Create(newCampaign)
 
-	repositoryMock.AssertExpectations(t)
+	repoMock.AssertExpectations(t)
 }
 
 func Test_Create_ValidateRepositorySave(t *testing.T) {
 	assert := assert.New(t)
-	repositoryMock := new(repositoryMock)
-	repositoryMock.On("Save", mock.Anything).Return(errors.New("error to save on database"))
-	service.Repository = repositoryMock
+	repoMock := new(repositoryMock)
+	repoMock.On("Save", mock.Anything).Return(errors.New("error to save on database"))
+	service.Repository = repoMock
 
 	_, err := service.Create(newCampaign)
+
+	assert.True(errors.Is(internalerrors.ErrInternal, err))
+}
+
+func Test_GetBy_Campaign(t *testing.T) {
+	assert := assert.New(t)
+	repoMock := new(repositoryMock)
+	campaignExpected, _ := NewCampaign(newCampaign.Name, newCampaign.Content, newCampaign.Emails)
+	repoMock.On("GetBy", campaignExpected.ID).Return(campaignExpected, nil)
+	service.Repository = repoMock
+
+	campaignResponse, err := service.GetBy(campaignExpected.ID)
+
+	assert.Nil(err)
+	assert.Equal(campaignExpected.ID, campaignResponse.ID)
+	assert.Equal(campaignExpected.Name, campaignResponse.Name)
+}
+
+func Test_GetBy_Error(t *testing.T) {
+	assert := assert.New(t)
+	repoMock := new(repositoryMock)
+	repoMock.On("GetBy", mock.Anything).Return(nil, errors.New("database error"))
+	service.Repository = repoMock
+
+	_, err := service.GetBy("invalid_id")
 
 	assert.True(errors.Is(internalerrors.ErrInternal, err))
 }
