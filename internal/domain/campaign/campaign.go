@@ -9,8 +9,8 @@ import (
 
 const (
 	Pending string = "Pending"
-	Started        = "Started"
-	Done           = "Done"
+	Started string = "Started"
+	Done    string = "Done"
 )
 
 type Contact struct {
