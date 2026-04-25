@@ -117,3 +117,15 @@ func Test_GetBy_Error(t *testing.T) {
 
 	assert.True(errors.Is(internalerrors.ErrInternal, err))
 }
+
+func Test_GetById_ReturnErrorWhenSomethingWrongExist(t *testing.T) {
+	assert := assert.New(t)
+	campaign, _ := NewCampaign(newCampaign.Name, newCampaign.Content, newCampaign.Emails)
+	repositoryMock := new(repositoryMock)
+	repositoryMock.On("GetBy", mock.Anything).Return(nil, errors.New("Something wrong'"))
+	service.Repository = repositoryMock
+
+	_, err := service.GetBy(campaign.ID)
+
+	assert.Equal(internalerrors.ErrInternal.Error(), err.Error())
+}
