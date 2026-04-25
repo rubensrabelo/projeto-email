@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"testing"
+	internalmock "emailn/internal/test/mock"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -16,7 +17,7 @@ func Test_CampaignsGet_should_return_list(t *testing.T) {
 		{"id": "2", "name": "Campanha 2"},
 	}
 
-	service := new(serviceMock)
+	service := new(internalmock.ServiceMock)
 	service.On("Get").Return(expectedCampaigns, nil)
 	
 	handler := Handler{CampaignService: service}
@@ -33,7 +34,7 @@ func Test_CampaignsGet_should_return_list(t *testing.T) {
 func Test_CampaignsGet_should_return_error(t *testing.T) {
 	assert := assert.New(t)
 
-	service := new(serviceMock)
+	service := new(internalmock.ServiceMock)
 	service.On("Get").Return(nil, fmt.Errorf("internal error"))
 	
 	handler := Handler{CampaignService: service}
