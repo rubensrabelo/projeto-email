@@ -22,10 +22,10 @@ type Contact struct {
 }
 
 type Campaign struct {
-	ID        string    `validate:"required"`
-	Name      string    `validate:"min=5,max=24"`
+	ID        string    `validate:"required" gorm:"size:50"`
+	Name      string    `validate:"min=5,max=24" gorm:"size:100"`
 	CreatedOn time.Time `validate:"required"`
-	Content   string    `validate:"min=5,max=1024"`
+	Content   string    `validate:"min=5,max=1024" gorm:"size:1024"`
 	Contacts  []Contact `validate:"min=1,dive"`
 	Status    string    `gorm:"size:20"`
 }
@@ -46,6 +46,7 @@ func NewCampaign(
 
 	contacts := make([]Contact, len(emails))
 	for index, email := range emails {
+		contacts[index].ID = xid.New().String()
 		contacts[index].Email = email
 	}
 
