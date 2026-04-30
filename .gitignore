@@ -16,3 +16,6 @@
 
 # Environment variable
 .env
+
+# Volume from Docker
+compose/**/data/

@@ -3,24 +3,20 @@ package campaign
 import (
 	"emailn/internal/contract"
 	internalerrors "emailn/internal/internal-errors"
+	"errors"
 )
 
-type Service struct {
+type ServiceImp struct {
 	Repository Repository
 }
 
-func (s *Service) Create(newCampaign contract.NewCampaign) (string, error) {
-	campaign, err := NewCampaign(
-		newCampaign.Name,
-		newCampaign.Content,
-		newCampaign.Emails,
-	)
+func (s *ServiceImp) Create(newCampaign contract.NewCampaign) (string, error) {
 
+	campaign, err := NewCampaign(newCampaign.Name, newCampaign.Content, newCampaign.Emails)
 	if err != nil {
 		return "", err
 	}
-
-	err = s.Repository.Save(campaign)
+	err = s.Repository.Create(campaign)
 	if err != nil {
 		return "", internalerrors.ErrInternal
 	}
@@ -28,25 +24,61 @@ func (s *Service) Create(newCampaign contract.NewCampaign) (string, error) {
 	return campaign.ID, nil
 }
 
-func (s *Service) Get() (interface{}, error) {
-    return s.Repository.Get()
+func (s *ServiceImp) GetBy(id string) (*contract.CampaignResponse, error) {
+
+	campaign, err := s.Repository.GetBy(id)
+
+	if err != nil {
+		return nil, internalerrors.ErrInternal
+	}
+
+	return &contract.CampaignResponse{
+		ID:                   campaign.ID,
+		Name:                 campaign.Name,
+		Content:              campaign.Content,
+		Status:               campaign.Status,
+		AmountOfEmailsToSend: len(campaign.Contacts),
+	}, nil
 }
 
-func (s *Service) GetBy(id string) (*contract.CampaignResponse, error) {
-    campaign, err := s.Repository.GetBy(id)
-    if err != nil {
-        return nil, internalerrors.ErrInternal
-    }
+func (s *ServiceImp) Cancel(id string) error {
 
-    // Adicione esta verificação de segurança
-    if campaign == nil {
-        return nil, nil // ou um erro de "not found"
-    }
+	campaign, err := s.Repository.GetBy(id)
 
-    return &contract.CampaignResponse{
-        ID:      campaign.ID,
-        Name:    campaign.Name,
-        Content: campaign.Content,
-        Status:  campaign.Status,
-    }, nil
+	if err != nil {
+		return internalerrors.ErrInternal
+	}
+
+	if campaign.Status != Pending {
+		return errors.New("Campaign status invalid")
+	}
+
+	campaign.Cancel()
+	err = s.Repository.Update(campaign)
+	if err != nil {
+		return internalerrors.ErrInternal
+	}
+
+	return nil
+}
+
+func (s *ServiceImp) Delete(id string) error {
+
+	campaign, err := s.Repository.GetBy(id)
+
+	if err != nil {
+		return internalerrors.ErrInternal
+	}
+
+	if campaign.Status != Pending {
+		return errors.New("Campaign status invalid")
+	}
+
+	campaign.Delete()
+	err = s.Repository.Delete(campaign)
+	if err != nil {
+		return internalerrors.ErrInternal
+	}
+
+	return nil
 }

@@ -8,9 +8,11 @@ import (
 )
 
 const (
-	Pending string = "Pending"
-	Started string = "Started"
-	Done    string = "Done"
+	Pending  string = "Pending"
+	Canceled        = "Canceled"
+	Deleted         = "Deleted"
+	Started         = "Started"
+	Done            = "Done"
 )
 
 type Contact struct {
@@ -24,6 +26,14 @@ type Campaign struct {
 	Content   string    `validate:"min=5,max=1024"`
 	Contacts  []Contact `validate:"min=1,dive"`
 	Status    string
+}
+
+func (c *Campaign) Cancel() {
+	c.Status = Canceled
+}
+
+func (c *Campaign) Delete() {
+	c.Status = Deleted
 }
 
 func NewCampaign(
