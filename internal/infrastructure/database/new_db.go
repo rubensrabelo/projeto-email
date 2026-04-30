@@ -7,15 +7,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewDb() *gorm.DB {
+func NewDb() (*gorm.DB, error) {
 	dsn := "host=localhost user=postgres password=postgres dbname=golang_db port=5555 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		panic("fail to connect to database")
+		return nil, err
 	}
 
 	db.AutoMigrate(&campaign.Campaign{}, &campaign.Contact{})
 
-	return db
+	return db, nil
 }

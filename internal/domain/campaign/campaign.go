@@ -9,14 +9,16 @@ import (
 
 const (
 	Pending  string = "Pending"
-	Canceled        = "Canceled"
-	Deleted         = "Deleted"
-	Started         = "Started"
-	Done            = "Done"
+	Canceled string = "Canceled"
+	Deleted  string = "Deleted"
+	Started  string = "Started"
+	Done     string = "Done"
 )
 
 type Contact struct {
-	Email string `validate:"email"`
+	ID         string `gorm:"size:50"`
+	Email      string `validate:"email" gorm:"size:100"`
+	CampaignId string `gorm:"size:50"`
 }
 
 type Campaign struct {
@@ -25,7 +27,7 @@ type Campaign struct {
 	CreatedOn time.Time `validate:"required"`
 	Content   string    `validate:"min=5,max=1024"`
 	Contacts  []Contact `validate:"min=1,dive"`
-	Status    string
+	Status    string    `gorm:"size:20"`
 }
 
 func (c *Campaign) Cancel() {
