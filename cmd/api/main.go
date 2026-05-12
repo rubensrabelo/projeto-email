@@ -27,10 +27,7 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	db, err := database.NewDb()
-	if err != nil {
-		log.Fatal("Erro ao conectar no banco:", err)
-	}
+	db := database.NewDb()
 
 	campaignService := campaign.ServiceImp{
 		Repository: &database.CampaignRepository{Db: db},

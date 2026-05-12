@@ -8,15 +8,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewDb() (*gorm.DB, error) {
+func NewDb() *gorm.DB {
 	dsn := os.Getenv("DATABASE")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		return nil, err
+		panic("fail to connect to database")
 	}
 
 	db.AutoMigrate(&campaign.Campaign{}, &campaign.Contact{})
 
-	return db, nil
+	return db
 }
